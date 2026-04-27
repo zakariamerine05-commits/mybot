@@ -1151,5 +1151,25 @@ async def _handle_message(message, msg, channel, author):
                     'مواطن': 'صوّت في القناة نهاراً فقط',
                 }
                 await author.send(f"💡 أمرك: {hints.get(role, '؟')}")
+@client.event
+async def on_member_join(member):
+    channel = discord.utils.get(member.guild.text_channels, name='الترحيب')
+    if not channel:
+        channel = member.guild.system_channel
+    if not channel:
+        return
 
+    embed = discord.Embed(
+        title=f"👋 أهلاً {member.display_name}!",
+        description="مرحباً بك في السيرفر!\nاختر سبب دخولك للحصول على رول مناسب 👇",
+        color=0xC9A84C
+    )
+    embed.set_thumbnail(url=member.avatar.url if member.avatar else None)
+    embed.set_footer(text=f"انضم في {member.guild.name}")
+
+    await channel.send(
+        content=member.mention,
+        embed=embed,
+        view=RoleSelectView()
+    )
 client.run(os.environ['TOKEN'])
