@@ -1152,5 +1152,4 @@ async def _handle_message(message, msg, channel, author):
                 }
                 await author.send(f"💡 أمرك: {hints.get(role, '؟')}")
 
-
-client.run('MTQ5NzkwMjYzMTA5ODc4MTc5OQ.GFhxNO.r6VqrPR9HCGPXWBJxGotYrWFigKq9iOiJuypLE')
+client.run(os.environ['TOKEN'])
