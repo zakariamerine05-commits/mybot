@@ -1,5 +1,0 @@
-[phases.install]
-cmds = ["pip install discord.py Pillow"]
-
-[variables]
-PYTHON_VERSION = "3.12"
