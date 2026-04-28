@@ -1,4 +1,4 @@
-import discord
+import discord  # تأكد أنها i صغيرة
 from discord.ui import Button, View
 import os
 
@@ -20,8 +20,11 @@ class RoleView(View):
             if role in interaction.user.roles:
                 await interaction.response.send_message(f"أنت تملك رتبة **{role_name}** بالفعل!", ephemeral=True)
             else:
-                await interaction.user.add_roles(role)
-                await interaction.response.send_message(f"✅ تم إعطاؤك رتبة: **{role_name}**", ephemeral=True)
+                try:
+                    await interaction.user.add_roles(role)
+                    await interaction.response.send_message(f"✅ تم إعطاؤك رتبة: **{role_name}**", ephemeral=True)
+                except discord.Forbidden:
+                    await interaction.response.send_message(f"❌ ليس لدي صلاحية لإعطائك هذه الرتبة. تأكد من ترتيب رتبتي في الإعدادات!", ephemeral=True)
         else:
             await interaction.response.send_message(f"❌ خطأ: الرتبة **{role_name}** غير موجودة بالسيرفر!", ephemeral=True)
 
@@ -51,10 +54,9 @@ async def on_ready():
     print(f'✅ {client.user} جاهز للعمل!')
     client.add_view(RoleView())
 
-# إرسال الرسالة عند دخول عضو جديد تلقائياً للقناة المحددة
 @client.event
 async def on_member_join(member):
-    channel_id = 1498483280478081194  # الأيدي الخاص بك
+    channel_id = 1498483280478081194 
     channel = client.get_channel(channel_id)
     if channel:
         embed = discord.Embed(
@@ -64,10 +66,13 @@ async def on_member_join(member):
         )
         await channel.send(content=f"مرحباً {member.mention}", embed=embed, view=RoleView())
 
-# أمر .setup لاستدعاء القائمة يدوياً
 @client.event
 async def on_message(message):
     if message.author.bot: return
+    
+    # سطر تجريبي: سيطبع في Railway كل ما تكتبه لنتأكد أن البوت يرى الرسائل
+    print(f"رسالة جديدة من {message.author}: {message.content}")
+
     if message.content == ".setup":
         if message.author.guild_permissions.administrator:
             embed = discord.Embed(
@@ -76,6 +81,9 @@ async def on_message(message):
                 color=0x2ecc71
             )
             await message.channel.send(embed=embed, view=RoleView())
-            await message.delete()
+            try:
+                await message.delete()
+            except:
+                pass
 
 client.run(os.environ['TOKEN'])
