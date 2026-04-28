@@ -3,19 +3,19 @@ from discord.ext import commands
 from discord.ui import Button, View
 import os
 
-# 1. إعداد الصلاحيات (Intents) - ضرورية جداً لكي يرى البوت الأعضاء الجدد
+# 1. إعداد الصلاحيات
 intents = discord.Intents.default()
 intents.members = True 
 intents.message_content = True 
 
-bot = commands.Bot(command_prefix=".", intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents)
 
-# 2. كلاس الأزرار والرتب
-class RoleView(View):
+# 2. كلاس الأزرار والرتب (يمكنك إضافة أو تغيير الأسماء هنا مستقبلاً)
+class RoleSelection(View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    async def add_role(self, interaction, role_name):
+    async def give_role(self, interaction, role_name):
         role = discord.utils.get(interaction.guild.roles, name=role_name)
         if role:
             if role in interaction.user.roles:
@@ -24,49 +24,38 @@ class RoleView(View):
                 await interaction.user.add_roles(role)
                 await interaction.response.send_message(f"✅ تم إعطاؤك رتبة: **{role_name}**", ephemeral=True)
         else:
-            await interaction.response.send_message(f"❌ الرتبة غير موجودة، تأكد من إنشائها في السيرفر بنفس الاسم.", ephemeral=True)
+            await interaction.response.send_message(f"❌ خطأ: لم أجد رتبة باسم '{role_name}' في إعدادات السيرفر.", ephemeral=True)
 
-    @discord.ui.button(label="Among Us", style=discord.ButtonStyle.primary, custom_id="btn_among")
-    async def b1(self, interaction, button): await self.add_role(interaction, "Among Us")
+    @discord.ui.button(label="Among Us", style=discord.ButtonStyle.primary, custom_id="btn_1")
+    async def b1(self, interaction, button): await self.give_role(interaction, "Among Us")
 
-    @discord.ui.button(label="PES", style=discord.ButtonStyle.primary, custom_id="btn_pes")
+    @discord.ui.button(label="PES", style=discord.ButtonStyle.primary, custom_id="btn_2")
     async def b2(self, interaction, button): await self.add_role(interaction, "PES")
 
-    @discord.ui.button(label="FIFA", style=discord.ButtonStyle.primary, custom_id="btn_fifa")
+    @discord.ui.button(label="FIFA", style=discord.ButtonStyle.primary, custom_id="btn_3")
     async def b3(self, interaction, button): await self.add_role(interaction, "FIFA")
-
-    @discord.ui.button(label="Stumble Guys", style=discord.ButtonStyle.secondary, custom_id="btn_stumble")
-    async def b4(self, interaction, button): await self.add_role(interaction, "Stumble Guys")
-
-    @discord.ui.button(label="GTA", style=discord.ButtonStyle.primary, custom_id="btn_gta")
-    async def b5(self, interaction, button): await self.add_role(interaction, "GTA")
-
-    @discord.ui.button(label="مشاهدة أفلام", style=discord.ButtonStyle.success, custom_id="btn_movies")
-    async def b6(self, interaction, button): await self.add_role(interaction, "Movies")
-
-    @discord.ui.button(label="دراسة", style=discord.ButtonStyle.danger, custom_id="btn_study")
-    async def b7(self, interaction, button): await self.add_role(interaction, "Study")
 
 @bot.event
 async def on_ready():
-    print(f'✅ البوت شغال الآن باسم: {bot.user}')
-    bot.add_view(RoleView())
+    print(f"✅ البوت متصل الآن باسم: {bot.user}")
+    bot.add_view(RoleSelection())
 
-# 3. الإرسال التلقائي في الخاص عند دخول عضو جديد
+# 3. الإرسال التلقائي عند دخول عضو جديد
 @bot.event
 async def on_member_join(member):
-    embed = discord.Embed(
-        title=f"مرحباً بك في {member.guild.name}!",
-        description="اختر اهتماماتك من الأزرار أدناه للحصول على الرتب الخاصة بك:",
-        color=0x2ecc71
-    )
-    try:
-        await member.send(embed=embed, view=RoleView())
-        print(f"✅ أرسلت بنجاح إلى خاص: {member.name}")
-    except:
-        # إذا كان الخاص مغلق، يرسل في القناة التي أعطيتني الأيدي الخاص بها
-        channel = bot.get_channel(1498483280478081194)
-        if channel:
-            await channel.send(f"مرحباً {member.mention}، حاولت مراسلتك في الخاص لإعطائك الرتب لكنه مغلق! يمكنك الاختيار من هنا:", embed=embed, view=RoleView())
+    # الرقم الذي أرسلته لي وضعته هنا
+    ID_CHANNEL = 1498483280478081194 
+    
+    channel = bot.get_channel(ID_CHANNEL)
+    
+    if channel:
+        embed = discord.Embed(
+            title="✨ نورت السيرفر يا بطل!",
+            description=f"أهلاً بك {member.mention}\nاختر ألعابك المفضلة من الأزرار أدناه لتفتح لك القنوات الخاصة بها:",
+            color=0x2ecc71
+        )
+        await channel.send(content=f"حياك الله {member.mention}", embed=embed, view=RoleSelection())
+    else:
+        print("❌ لم أستطع العثور على القناة، تأكد من صحة الـ ID ومن وجود البوت في السيرفر.")
 
-bot.run(os.environ['TOKEN'])
+bot.run(os.environ.get('TOKEN'))
